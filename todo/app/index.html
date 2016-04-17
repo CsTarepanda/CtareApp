@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<meta charset="utf-8">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js"></script>
+<head>
+  <title>wsoc</title>
+</head>
+<body>
+  <h1>websocket</h1>
+  <h3 id="connected"></h3>
+  <form id="chat">
+    <input id="mes" type="text">
+    <input type="submit">
+  </form>
+  <div id="csl"></div>
+
+  <script>
+var ws = new WebSocket("ws://localhost:8080/");
+ws.onopen = function(e){
+  $("#connected").html("connected");
+}
+
+ws.onmessage = function(event){
+  $("#csl").append(event.data + "<br>");
+}
+
+$("#chat").submit(function(){
+  var $mes = $("#mes")
+  ws.send($mes.val());
+  $mes.val("");
+  return false;
+});
+  </script>
+
+</body>
+</html>
+
