@@ -15,3 +15,4 @@ def exe(options, args):
 
 def options(parser):
     # add your options
+    pass
