@@ -1,4 +1,26 @@
 import sqlite3
+import json
+
+
+class Json:
+    """This class is json wrapper...
+
+    dump:
+        Json(name=data...)
+        <Json>.add(name=data...)
+    use:
+        str(<Json>)
+    """
+
+    def __init__(self, **data):
+        self.json_data = {}
+        self.add(**data)
+
+    def add(self, **data):
+        self.json_data.update(**data)
+
+    def __str__(self):
+        return json.dumps(self.json_data, ensure_ascii=False)
 
 
 class Sqlite3:
@@ -8,10 +30,19 @@ class Sqlite3:
     close: db.close()
     """
 
-    def __init__(self, dbname):
+    def __init__(self, dbname, dic=False):
         self.dbname = dbname
         self.db = sqlite3.connect(dbname)
+        if dic:
+            self.db.row_factory = Sqlite3.dict_factory
         self.dbc = self.db.cursor()
+
+    @staticmethod
+    def dict_factory(cursor, row):
+        dic = {}
+        for index, column in enumerate(cursor.description):
+            dic[column[0]] = row[index]
+        return dic
 
     @staticmethod
     def _create_question(length):
@@ -69,6 +100,7 @@ class Sqlite3Table:
             self.tablename,
             ",".join(columns)
             ))
+        return self
 
     def insert(self, **data):
         self.execute("insert into {0}({1}) values({2})".format(
@@ -90,8 +122,8 @@ class Sqlite3Table:
                 "update {0} set {1} where {2}".format(
                     self.tablename, set_result[:-2], where))
 
-    def select_all(self, limit=-1):
-        return self.get("select * from {}".format(self.tablename))
+    def select(self, sql="", columns="*"):
+        return self.get("select {0} from {1} {2}".format(columns, self.tablename, sql))
 
     def search(self, column, word):
         return self.get("select * from {0} where {1} like '%{2}%'".format(

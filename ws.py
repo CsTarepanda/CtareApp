@@ -8,36 +8,79 @@ import ws_settings
 
 
 class WebSocket(tornado.websocket.WebSocketHandler):
-    clients = []
+    clients = {}
+    client_type = "sender"
     def check_origin(self, origin):
         print(origin)
         return True
 
     def open(self):
-        WebSocket.clients.append(self)
-        print("websocket opened")
+        self.client_type = self.request.headers.get("Type")
+        if self.client_type == "receiver":
+            username = WebSocket._extract_user(self)
+            if not username in WebSocket.clients:
+                WebSocket.clients[username] = []
+            WebSocket.clients[username].append(self)
+            print("websocket opened: " +username)
+        self.client = self
 
     def on_close(self):
-        WebSocket.clients.remove(self)
-        print("websocket closed")
+        if self.client_type == "receiver":
+            WebSocket.del_client(self)
+            print("websocket closed: " +self.request.headers["User"])
 
     def send_message(self, message):
-        self.write_message(message)
+        for client in WebSocket.get_client(self)[0]:
+            client.write_message(str(message))
 
     @staticmethod
     def all_send_message(message):
-        for clie in WebSocket.clients:
-            clie.write_message(message)
+        for clie in WebSocket.clients.values():
+            for c in clie:
+                c.write_message(str(message))
 
     def other_send_message(self, message):
-        for clie in WebSocket.clients:
-            if clie != self:
-                clie.write_message(message)
+        me = WebSocket.get_client(self)[0]
+        for clie in WebSocket.clients.values():
+            if clie != me:
+                for c in clie:
+                    c.write_message(str(message))
+
+    @staticmethod
+    def _extract_user(ws):
+        return ws.request.headers["User"]
+
+    @staticmethod
+    def add_client(ws):
+        username = WebSocket._extract_user(ws)
+        if not username in WebSocket.clients:
+            WebSocket.clients[username] = [ws]
+        else:
+            WebSocket.clients[username].append(ws)
+
+    @staticmethod
+    def del_client(ws):
+        if ws.client_type != "closer":
+            client, username = WebSocket.get_client(ws)
+            ws.client_type = "closer"
+            client.remove(ws)
+            ws.close()
+            if not client:
+                del WebSocket.clients[username]
+
+    @staticmethod
+    def get_client(ws):
+        username = WebSocket._extract_user(ws)
+        return WebSocket.clients[username], username
 
     @staticmethod
     def get_user(data):
         user = data.get("user")
         return user if user else "guest"
+
+    @staticmethod
+    def get_account(data):
+        pass
 
 
 class WSThread(threading.Thread):
@@ -70,10 +113,13 @@ if __name__ == "__main__":
         THREADS = []
         for i in ws_settings.CLIENTS:
             mod = __import__(i +".ws")
+            client_data = __import__(i +".data.account")
+            header = {"Type" : "receiver"}
+            header.update(client_data.data.account.DATA)
             ws = websocket.create_connection("{0}{1}".format(
                 ws_settings.URL,
                 mod.ws.CLIENT_URL
-                ))
+                ), header=header)
             thread = mod.ws.WSThread(ws)
             thread.start()
             print(" === connect {} === ".format(i))
