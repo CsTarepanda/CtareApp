@@ -16,6 +16,9 @@ class WebSocket(ws.WebSocket):
             "date not null",
             )
 
+    def socket(self):
+        return WebSocket
+
     def on_message(self, message):
         try:
             data = json.loads(message, "utf-8")
@@ -23,7 +26,7 @@ class WebSocket(ws.WebSocket):
             password = data.get("password")
             connectuser = data.get("connect")
             if connectuser:
-                self.client.send_message(Json(message="Hello, " + connectuser))
+                WebSocket.send_message(self.client, Json(message="Hello, " + connectuser))
                 self.other_send_message(Json(
                     message="connect by " + connectuser,
                     connectuser=connectuser,
@@ -35,13 +38,13 @@ class WebSocket(ws.WebSocket):
                 func = data.get("func")
                 if func == "list":
                     todolist = self.table.select(columns="title, todo, done, date", sql="where done==0")
-                    self.send_message(Json(
+                    WebSocket.send_message(self, Json(
                         message="list",
                         tododata=todolist
                         ))
                 elif func == "all":
                     alltodolist = self.table.select(columns="title, todo, done, date")
-                    self.send_message(Json(
+                    WebSocket.send_message(self, Json(
                         message="all",
                         tododata=alltodolist
                         ))
@@ -57,7 +60,7 @@ class WebSocket(ws.WebSocket):
                             tododata=todo,
                             ))
                     else:
-                        self.send_message(Json(error="needs title, todo, date"))
+                        WebSocket.send_message(self, Json(error="needs title, todo, date"))
                 elif func == "done":
                     if title:
                         self.table.update("title=='{}'".format(title), done=1)
@@ -70,7 +73,7 @@ class WebSocket(ws.WebSocket):
                             tododata=todo,
                             ))
                     else:
-                        self.send_message(Json(error="needs title"))
+                        WebSocket.send_message(self, Json(error="needs title"))
                 elif func == "remove":
                     if title:
                         todo = self.table.select(
@@ -83,7 +86,7 @@ class WebSocket(ws.WebSocket):
                             tododata=todo,
                             ))
                     else:
-                        self.send_message(Json(error="needs title"))
+                        WebSocket.send_message(self, Json(error="needs title"))
                 elif func == "reopen":
                     if title:
                         self.table.update("title=='{}'".format(title), done=0)
@@ -96,7 +99,7 @@ class WebSocket(ws.WebSocket):
                             tododata=todo,
                             ))
                     else:
-                        self.send_message(Json(error="needs title"))
+                        WebSocket.send_message(self, Json(error="needs title"))
 
         except Exception as e:
             WebSocket.all_send_message(Json(error=str(e)))

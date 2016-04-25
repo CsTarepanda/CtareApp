@@ -8,6 +8,10 @@ import json
 SERVER_URL = r"/chat/$"
 class WebSocket(ws.WebSocket):
     clients = {}
+
+    def socket(self):
+        return WebSocket
+
     def on_message(self, message):
         WebSocket.all_send_message(Json(
             message=message,
