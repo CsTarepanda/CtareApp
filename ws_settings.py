@@ -1,9 +1,9 @@
 URL = "ws://localhost:8080"
 
 SERVERS = [
-        "todo",
+        "chat",
 ]
 
 CLIENTS = [
-        "todo",
+        "chat",
 ]
