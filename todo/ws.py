@@ -7,7 +7,7 @@ import app_settings
 SERVER_URL = r"/todo/$"
 
 class WebSocket(ws.WebSocket):
-    table = Sqlite3(app_settings.BASEPATH + "todo/data/todo.sqlite3", dic=True).table("todo").create(
+    table = Sqlite3(app_settings.BASEPATH + "/todo/data/todo.sqlite3", dic=True).table("todo").create(
             "id integer primary key",
             "title unique not null",
             "todo not null",
