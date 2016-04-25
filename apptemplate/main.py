@@ -1,6 +1,7 @@
 import ws_settings
+# from <app name>.ws import CLIENT_URL
 import websocket
-import json
+from lib.mylib_cls import Json
 
 # import <your app>.data.account
 
@@ -14,5 +15,12 @@ def exe(options, args):
 
 
 def options(parser):
+    parser.add_option(
+            "-u",
+            "--url",
+            dest="URL",
+            default=ws_settings.URL + CLIENT_URL,
+            help="connection url",
+            )
     # add your options
-    pass
+
