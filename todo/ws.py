@@ -7,6 +7,7 @@ import app_settings
 SERVER_URL = r"/todo/$"
 
 class WebSocket(ws.WebSocket):
+    clients = {}
     table = Sqlite3(app_settings.BASEPATH + "/todo/data/todo.sqlite3", dic=True).table("todo").create(
             "id integer primary key",
             "title unique not null",
@@ -51,7 +52,7 @@ class WebSocket(ws.WebSocket):
                                 columns="title, todo, done, date",
                                 sql="where title=='{}'".format(title)
                                 )
-                        ws.WebSocket.all_send_message(Json(
+                        WebSocket.all_send_message(Json(
                             message="save",
                             tododata=todo,
                             ))
@@ -64,7 +65,7 @@ class WebSocket(ws.WebSocket):
                                 columns="title, todo, done, date",
                                 sql="where title=='{}'".format(title)
                                 )
-                        ws.WebSocket.all_send_message(Json(
+                        WebSocket.all_send_message(Json(
                             message="done",
                             tododata=todo,
                             ))
@@ -77,7 +78,7 @@ class WebSocket(ws.WebSocket):
                                 sql="where title=='{}'".format(title)
                                 )
                         self.table.delete("title=='{}'".format(title))
-                        ws.WebSocket.all_send_message(Json(
+                        WebSocket.all_send_message(Json(
                             message="remove",
                             tododata=todo,
                             ))
@@ -90,7 +91,7 @@ class WebSocket(ws.WebSocket):
                                 columns="title, todo, done, date",
                                 sql="where title=='{}'".format(title)
                                 )
-                        ws.WebSocket.all_send_message(Json(
+                        WebSocket.all_send_message(Json(
                             message="reopen",
                             tododata=todo,
                             ))
@@ -98,7 +99,7 @@ class WebSocket(ws.WebSocket):
                         self.send_message(Json(error="needs title"))
 
         except Exception as e:
-            ws.WebSocket.all_send_message(Json(error=str(e)))
+            WebSocket.all_send_message(Json(error=str(e)))
 
 from todo import color_settings
 from lib.linux.printer import inprint, cstr
