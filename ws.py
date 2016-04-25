@@ -33,9 +33,9 @@ class WebSocket(tornado.websocket.WebSocketHandler):
         for client in WebSocket.get_client(self)[0]:
             client.write_message(str(message))
 
-    @staticmethod
-    def all_send_message(message):
-        for clie in WebSocket.clients.values():
+    @classmethod
+    def all_send_message(cls, message):
+        for clie in cls.clients.values():
             for c in clie:
                 c.write_message(str(message))
 
@@ -50,28 +50,28 @@ class WebSocket(tornado.websocket.WebSocketHandler):
     def _extract_user(ws):
         return ws.request.headers["User"]
 
-    @staticmethod
-    def add_client(ws):
+    @classmethod
+    def add_client(cls, ws):
         username = WebSocket._extract_user(ws)
-        if not username in WebSocket.clients:
-            WebSocket.clients[username] = [ws]
+        if not username in cls.clients:
+            cls.clients[username] = [ws]
         else:
-            WebSocket.clients[username].append(ws)
+            cls.clients[username].append(ws)
 
-    @staticmethod
-    def del_client(ws):
+    @classmethod
+    def del_client(cls, ws):
         if ws.client_type != "closer":
-            client, username = WebSocket.get_client(ws)
+            client, username = cls.get_client(ws)
             ws.client_type = "closer"
             client.remove(ws)
             ws.close()
             if not client:
-                del WebSocket.clients[username]
+                del cls.clients[username]
 
-    @staticmethod
-    def get_client(ws):
+    @classmethod
+    def get_client(cls, ws):
         username = WebSocket._extract_user(ws)
-        return WebSocket.clients[username], username
+        return cls.clients[username], username
 
     @staticmethod
     def get_user(data):
