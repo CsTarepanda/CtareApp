@@ -1,4 +1,5 @@
 import ws_settings
+from todo.ws import CLIENT_URL
 import websocket
 import todo.data.account
 import json
@@ -32,7 +33,7 @@ def options(parser):
             "-u",
             "--url",
             dest="URL",
-            default=ws_settings.URL + "/todo/",
+            default=ws_settings.URL + CLIENT_URL,
             help="connection url",
             )
     parser.add_option(
