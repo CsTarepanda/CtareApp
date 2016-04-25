@@ -11,7 +11,7 @@ def exe(options, args):
     header.update(chat.data.account.DATA)
     ws = websocket.create_connection(options.URL, header=header)
     # add main process
-    ws.send(str(Json(message=args[0])))
+    ws.send(args[0])
 
 
 def options(parser):
