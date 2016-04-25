@@ -1,6 +1,5 @@
 import tornado.ioloop
 import tornado.websocket
-import django
 
 import websocket
 import threading
@@ -17,6 +16,7 @@ class WebSocket(tornado.websocket.WebSocketHandler):
     def open(self):
         self.client_type = self.request.headers.get("Type")
         self.username = WebSocket._extract_user(self)
+        print("connect: " + self.username)
         if self.client_type == "receiver":
             if not self.username in WebSocket.clients:
                 WebSocket.clients[self.username] = []
