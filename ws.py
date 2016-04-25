@@ -16,12 +16,12 @@ class WebSocket(tornado.websocket.WebSocketHandler):
 
     def open(self):
         self.client_type = self.request.headers.get("Type")
+        self.username = WebSocket._extract_user(self)
         if self.client_type == "receiver":
-            username = WebSocket._extract_user(self)
-            if not username in WebSocket.clients:
-                WebSocket.clients[username] = []
-            WebSocket.clients[username].append(self)
-            print("websocket opened: " +username)
+            if not self.username in WebSocket.clients:
+                WebSocket.clients[self.username] = []
+            WebSocket.clients[self.username].append(self)
+            print("websocket opened: " +self.username)
         self.client = self
 
     def on_close(self):
