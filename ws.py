@@ -16,21 +16,26 @@ class WebSocket(tornado.websocket.WebSocketHandler):
     def open(self):
         self.client_type = self.request.headers.get("Type")
         self.username = WebSocket._extract_user(self)
-        print("connect: " + self.username)
+        print("connect: " + self.username +" type: "+ self.client_type)
         if self.client_type == "receiver":
-            if not self.username in WebSocket.clients:
-                WebSocket.clients[self.username] = []
-            WebSocket.clients[self.username].append(self)
+            if not self.username in self.socket().clients:
+                self.socket().clients[self.username] = []
+            self.socket().clients[self.username].append(self)
             print("websocket opened: " +self.username)
-        self.client = self
 
     def on_close(self):
         if self.client_type == "receiver":
             WebSocket.del_client(self)
             print("websocket closed: " +self.request.headers["User"])
 
-    def send_message(self, message):
-        for client in WebSocket.get_client(self)[0]:
+    def socket(self):
+        return WebSocket
+
+    @classmethod
+    def send_message(cls, target, message):
+        print(cls.clients)
+        for client in cls.get_client(target)[0]:
+            print("ok : {}".format(cls))
             client.write_message(str(message))
 
     @classmethod
@@ -57,6 +62,7 @@ class WebSocket(tornado.websocket.WebSocketHandler):
             cls.clients[username] = [ws]
         else:
             cls.clients[username].append(ws)
+        print("add : " + str(cls.clients))
 
     @classmethod
     def del_client(cls, ws):
